@@ -136,5 +136,18 @@ public class InventarioController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al eliminar: " + e.getMessage());
         }
+
+    }
+    @GetMapping("/todos")
+    public ResponseEntity<List<Inventario>> obtenerCatalogoGlobal() {
+        try {
+            // .findAll() es magia de Spring Boot: trae absolutamente todos los registros
+            // de la tabla inventarios, junto con sus piezas gracias al @ManyToOne
+            List<Inventario> catalogoCompleto = inventarioRepository.findAll();
+
+            return ResponseEntity.ok(catalogoCompleto);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

@@ -8,14 +8,14 @@ import java.util.UUID;
 public class Perfil {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private UUID id;
 
     private String nombre;
     private String avatar_url;
     private String rol;
 
-    // Getters y Setters
+    // Tus Getters y Setters se quedan exactamente igual, no los toques
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
