@@ -24,7 +24,6 @@ public class InventarioController {
     @PostMapping("/agregar")
     public ResponseEntity<String> agregarStock(@RequestBody Map<String, Object> payload) {
         try {
-
             // 1. Extraer y guardar los datos de la Pieza global
             Pieza nuevaPieza = new Pieza();
             nuevaPieza.setMarca((String) payload.get("marca"));
@@ -39,6 +38,11 @@ public class InventarioController {
             nuevaPieza.setMarca_vehiculo((String) payload.get("marca_vehiculo"));
             nuevaPieza.setAnio_vehiculo((String) payload.get("anio_vehiculo"));
             nuevaPieza.setImagen_url((String) payload.get("imagen_url"));
+
+
+            nuevaPieza.setNumeroParte((String) payload.get("numero_parte"));
+            nuevaPieza.setCondicion((String) payload.get("condicion"));
+            nuevaPieza.setGarantia((String) payload.get("garantia"));
 
             Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
 
@@ -59,9 +63,8 @@ public class InventarioController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al procesar el registro: " + e.getMessage());
         }
-
-
     }
+
     @GetMapping("/tienda/{tiendaId}")
     public ResponseEntity<List<Inventario>> obtenerInventarioTienda(@PathVariable("tiendaId") UUID tiendaId) {
         try {
@@ -99,6 +102,11 @@ public class InventarioController {
             pieza.setMarca_vehiculo((String) payload.get("marca_vehiculo"));
             pieza.setAnio_vehiculo((String) payload.get("anio_vehiculo"));
 
+            // ¡AQUÍ TAMBIÉN! Para que al editar no se borren
+            pieza.setNumeroParte((String) payload.get("numero_parte"));
+            pieza.setCondicion((String) payload.get("condicion"));
+            pieza.setGarantia((String) payload.get("garantia"));
+
             // Solo actualizamos la imagen si mandaron una nueva
             if (payload.get("imagen_url") != null && !payload.get("imagen_url").toString().isEmpty()) {
                 pieza.setImagen_url((String) payload.get("imagen_url"));
@@ -113,6 +121,7 @@ public class InventarioController {
             return ResponseEntity.badRequest().body("Error al actualizar: " + e.getMessage());
         }
     }
+
     @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<String> eliminarStock(@PathVariable("id") UUID id) {
         try {
@@ -136,8 +145,8 @@ public class InventarioController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al eliminar: " + e.getMessage());
         }
-
     }
+
     @GetMapping("/todos")
     public ResponseEntity<List<Inventario>> obtenerCatalogoGlobal() {
         try {

@@ -1,5 +1,5 @@
 package com.alberto.backend;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -24,6 +24,14 @@ public class Pieza {
     private String marca_vehiculo;
     private String anio_vehiculo;
     private String imagen_url;
+
+    @JsonProperty("numero_parte") // Esto le dice a Java: "En el JSON de React búscalo con guion bajo"
+    @Column(name = "numero_parte") // Esto le dice a Java: "En Supabase guárdalo con guion bajo"
+    private String numeroParte;
+
+    private String condicion;
+
+    private String garantia;
 
     // Getters y Setters
     public UUID getId() { return id; }
@@ -65,4 +73,28 @@ public class Pieza {
 
     public String getImagen_url() { return imagen_url; }
     public void setImagen_url(String imagen_url) { this.imagen_url = imagen_url; }
+
+    public String getNumeroParte() {
+        return numeroParte;
+    }
+
+    public void setNumeroParte(String numeroParte) {
+        this.numeroParte = numeroParte;
+    }
+
+    public String getCondicion() {
+        return condicion;
+    }
+
+    public void setCondicion(String condicion) {
+        this.condicion = condicion;
+    }
+
+    public String getGarantia() {
+        return garantia;
+    }
+
+    public void setGarantia(String garantia) {
+        this.garantia = garantia;
+    }
 }
