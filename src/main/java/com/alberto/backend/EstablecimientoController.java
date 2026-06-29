@@ -67,5 +67,43 @@ public class EstablecimientoController {
         return establecimientoRepository.save(nuevaTienda);
     }
 
+    @PutMapping("/suspender/{id}")
+    public Establecimiento suspenderEstablecimiento(@PathVariable("id") UUID id) {
+        Establecimiento tienda = establecimientoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tienda no encontrada"));
+
+        tienda.setEstado("SUSPENDIDO");
+
+        // LÓGICA DE ROLES: Le quitamos el poder de tienda y lo regresamos a comprador
+        if (tienda.getPropietario_id() != null) {
+            Perfil dueño = perfilRepository.findById(tienda.getPropietario_id()).orElse(null);
+            if (dueño != null) {
+                dueño.setRol("comprador");
+                perfilRepository.save(dueño);
+            }
+        }
+
+        return establecimientoRepository.save(tienda);
+    }
+
+    @PutMapping("/reactivar/{id}")
+    public Establecimiento reactivarEstablecimiento(@PathVariable("id") UUID id) {
+        Establecimiento tienda = establecimientoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tienda no encontrada"));
+
+        tienda.setEstado("APROBADO");
+
+        // LÓGICA DE ROLES: Le devolvemos su acceso al dashboard de tienda
+        if (tienda.getPropietario_id() != null) {
+            Perfil dueño = perfilRepository.findById(tienda.getPropietario_id()).orElse(null);
+            if (dueño != null) {
+                dueño.setRol("tienda");
+                perfilRepository.save(dueño);
+            }
+        }
+
+        return establecimientoRepository.save(tienda);
+    }
+
 
 }
