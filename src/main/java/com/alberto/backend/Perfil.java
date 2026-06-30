@@ -14,6 +14,8 @@ public class Perfil {
     private String nombre;
     private String avatar_url;
     private String rol;
+    private boolean activo = true;
+
 
     // Tus Getters y Setters se quedan exactamente igual, no los toques
     public UUID getId() { return id; }
@@ -27,4 +29,7 @@ public class Perfil {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 }

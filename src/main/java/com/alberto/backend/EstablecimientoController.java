@@ -4,12 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @RestController
 @RequestMapping("/api/establecimientos")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173")
 public class EstablecimientoController {
 
+    private static final Logger logger = LoggerFactory.getLogger(EstablecimientoController.class);
     @Autowired
     private EstablecimientoRepository establecimientoRepository;
 
@@ -63,6 +67,7 @@ public class EstablecimientoController {
 
         // Obligamos a que nazca como pendiente
         nuevaTienda.setEstado("PENDIENTE");
+        logger.info("ACCION_CREACION: Nueva solicitud de registro recibida. Empresa: {}, RFC: {}", nuevaTienda.getNombre(), nuevaTienda.getRfc());
 
         return establecimientoRepository.save(nuevaTienda);
     }
@@ -82,7 +87,7 @@ public class EstablecimientoController {
                 perfilRepository.save(dueño);
             }
         }
-
+        logger.info("ACCION_ADMIN: Tienda suspendida. ID Tienda: {}, Estado nuevo: SUSPENDIDO", id);
         return establecimientoRepository.save(tienda);
     }
 
