@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "http://localhost:5173", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}, maxAge = 3600)
 public class AdminController {
 
 
@@ -49,7 +49,7 @@ public class AdminController {
     }
 
     @PutMapping("/compradores/{id}/suspender")
-    public ResponseEntity<?> suspenderComprador(@PathVariable UUID id) {
+    public ResponseEntity<?> suspenderComprador(@PathVariable("id") UUID id) {
         Optional<Perfil> perfilOpt = perfilRepository.findById(id);
 
         if (perfilOpt.isPresent()) {

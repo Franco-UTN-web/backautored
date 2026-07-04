@@ -10,4 +10,5 @@ public interface PerfilRepository extends JpaRepository<Perfil, UUID> {
     Optional<Perfil> findByNombre(String nombre);
     List<Perfil> findByRol(String rol);
 
+
 }
