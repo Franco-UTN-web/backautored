@@ -2,24 +2,22 @@ package com.alberto.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:5173", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}, maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
 public class AdminController {
-
 
     @Autowired
     private EstablecimientoRepository establecimientoRepository;
 
-    // 1. Inyectamos el repositorio de Perfiles
     @Autowired
     private PerfilRepository perfilRepository;
 
@@ -41,11 +39,15 @@ public class AdminController {
         return metricas;
     }
 
-    // 2. NUEVO ENDPOINT: Listar todos los usuarios compradores
     @GetMapping("/compradores")
     public List<Perfil> obtenerCompradores() {
-        // Busca en la base de datos a todos los que tengan el rol exacto de "comprador"
         return perfilRepository.findByRol("comprador");
+    }
+
+    // 🔥 EL ENDPOINT QUE EVITA EL ERROR DE REACT 🔥
+    @GetMapping("/usuarios")
+    public List<Perfil> obtenerTodosLosUsuarios() {
+        return perfilRepository.findAll();
     }
 
     @PutMapping("/compradores/{id}/suspender")
@@ -54,12 +56,10 @@ public class AdminController {
 
         if (perfilOpt.isPresent()) {
             Perfil perfil = perfilOpt.get();
-            // Invertimos el estado (si era true pasa a false, y viceversa)
             perfil.setActivo(!perfil.isActivo());
             perfilRepository.save(perfil);
             return ResponseEntity.ok(perfil);
         }
-
         return ResponseEntity.notFound().build();
     }
 }
