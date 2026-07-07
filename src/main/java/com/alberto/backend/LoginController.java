@@ -52,6 +52,8 @@ public class LoginController {
             // Devolvemos la verdad absoluta al frontend
             response.put("rol", perfilFinal.getRol());
             response.put("nombre", perfilFinal.getNombre());
+            // ---> NUEVA LÍNEA: Mandamos el estado de suspensión
+            response.put("activo", String.valueOf(perfilFinal.isActivo()));
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
