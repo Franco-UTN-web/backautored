@@ -150,11 +150,10 @@ public class InventarioController {
     @GetMapping("/todos")
     public ResponseEntity<List<Inventario>> obtenerCatalogoGlobal() {
         try {
-            // .findAll() es magia de Spring Boot: trae absolutamente todos los registros
-            // de la tabla inventarios, junto con sus piezas gracias al @ManyToOne
-            List<Inventario> catalogoCompleto = inventarioRepository.findAll();
+            // 🔥 En lugar de findAll(), usamos nuestra nueva consulta estricta 🔥
+            List<Inventario> catalogoActivo = inventarioRepository.findInventarioTiendasAprobadas();
 
-            return ResponseEntity.ok(catalogoCompleto);
+            return ResponseEntity.ok(catalogoActivo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

@@ -149,3 +149,48 @@ java.net.SocketException: Connection reset by peer
 2026-07-11T19:45:08.552-06:00  INFO 24524 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-07-11T19:45:08.570-06:00  INFO 24524 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2026-07-11T19:45:09.007-06:00  INFO 24524 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-07-11T19:45:14.640-06:00  INFO 22072 --- [main] com.alberto.backend.BackendApplication   : Starting BackendApplication using Java 25.0.2 with PID 22072 (C:\Users\Jesus\IdeaProjects\backend\target\classes started by Jesus in C:\Users\Jesus\IdeaProjects\backend)
+2026-07-11T19:45:14.644-06:00  INFO 22072 --- [main] com.alberto.backend.BackendApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-07-11T19:45:15.369-06:00  INFO 22072 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-11T19:45:15.443-06:00  INFO 22072 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 65 ms. Found 4 JPA repository interfaces.
+2026-07-11T19:45:15.897-06:00  INFO 22072 --- [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-07-11T19:45:15.916-06:00  INFO 22072 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-11T19:45:15.917-06:00  INFO 22072 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-07-11T19:45:16.005-06:00  INFO 22072 --- [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1301 ms
+2026-07-11T19:45:16.216-06:00  INFO 22072 --- [main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-07-11T19:45:16.307-06:00  INFO 22072 --- [main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-07-11T19:45:17.003-06:00  INFO 22072 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-11T19:45:17.058-06:00  INFO 22072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-11T19:45:18.772-06:00  INFO 22072 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@26f5e45d
+2026-07-11T19:45:18.774-06:00  INFO 22072 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-11T19:45:18.933-06:00  WARN 22072 --- [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-11T19:45:19.397-06:00  INFO 22072 --- [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.6
+	Default catalog/schema: postgres/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-11T19:45:20.734-06:00  INFO 22072 --- [main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-11T19:45:20.745-06:00  INFO 22072 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-11T19:45:20.850-06:00  INFO 22072 --- [main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-11T19:45:22.118-06:00  WARN 22072 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-11T19:45:22.575-06:00  INFO 22072 --- [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-07-11T19:45:22.582-06:00  INFO 22072 --- [main] com.alberto.backend.BackendApplication   : Started BackendApplication in 8.473 seconds (process running for 9.27)
+2026-07-11T19:45:31.570-06:00  INFO 22072 --- [http-nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-11T19:45:31.572-06:00  INFO 22072 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-11T19:45:31.574-06:00  INFO 22072 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-07-11T19:54:37.024-06:00  INFO 22072 --- [http-nio-8080-exec-4] c.a.backend.EstablecimientoController    : ACCION_ADMIN: Tienda suspendida. ID Tienda: 31a25c3b-b37b-4b51-a3d2-09651943e073, Estado nuevo: SUSPENDIDO
+2026-07-11T19:54:39.040-06:00  INFO 22072 --- [http-nio-8080-exec-2] c.a.backend.EstablecimientoController    : ACCION_ADMIN: Tienda suspendida. ID Tienda: 653ca612-e5e1-451f-b3ff-7d114499a391, Estado nuevo: SUSPENDIDO
+2026-07-11T19:54:40.444-06:00  INFO 22072 --- [http-nio-8080-exec-8] c.a.backend.EstablecimientoController    : ACCION_ADMIN: Tienda suspendida. ID Tienda: fbaa35b4-514b-4ca3-b313-5b2a68dde1b1, Estado nuevo: SUSPENDIDO
+2026-07-11T19:54:54.485-06:00  INFO 22072 --- [http-nio-8080-exec-8] com.alberto.backend.LoginController      : ACCION_LOGIN: Usuario existente sincronizado. Email: adolfofrancomontota@gmail.com, Rol Real: comprador
+2026-07-11T20:11:30.521-06:00  INFO 22072 --- [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-11T20:11:30.531-06:00  INFO 22072 --- [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-07-11T20:11:30.537-06:00  INFO 22072 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-11T20:11:30.540-06:00  INFO 22072 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-11T20:11:30.883-06:00  INFO 22072 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
