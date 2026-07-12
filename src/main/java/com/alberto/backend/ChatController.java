@@ -12,7 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
+@CrossOrigin(origins = "*")
 public class ChatController {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);

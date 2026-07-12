@@ -3,3 +3,57 @@
 2026-07-12T00:00:44.538-06:00  INFO 13568 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-07-12T00:00:44.543-06:00  INFO 13568 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2026-07-12T00:00:44.874-06:00  INFO 13568 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-07-12T00:00:50.030-06:00  INFO 24044 --- [main] com.alberto.backend.BackendApplication   : Starting BackendApplication using Java 25.0.2 with PID 24044 (C:\Users\Jesus\IdeaProjects\backend\target\classes started by Jesus in C:\Users\Jesus\IdeaProjects\backend)
+2026-07-12T00:00:50.033-06:00  INFO 24044 --- [main] com.alberto.backend.BackendApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-07-12T00:00:50.701-06:00  INFO 24044 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-12T00:00:50.766-06:00  INFO 24044 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 54 ms. Found 4 JPA repository interfaces.
+2026-07-12T00:00:51.214-06:00  INFO 24044 --- [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-07-12T00:00:51.229-06:00  INFO 24044 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-12T00:00:51.230-06:00  INFO 24044 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-07-12T00:00:51.311-06:00  INFO 24044 --- [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1237 ms
+2026-07-12T00:00:51.499-06:00  INFO 24044 --- [main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-07-12T00:00:51.583-06:00  INFO 24044 --- [main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-07-12T00:00:52.227-06:00  INFO 24044 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-12T00:00:52.274-06:00  INFO 24044 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-12T00:00:53.816-06:00  INFO 24044 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@c82d925
+2026-07-12T00:00:53.818-06:00  INFO 24044 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-12T00:00:53.978-06:00  WARN 24044 --- [main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-12T00:00:54.437-06:00  INFO 24044 --- [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.6
+	Default catalog/schema: postgres/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-12T00:00:55.757-06:00  INFO 24044 --- [main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-12T00:00:55.768-06:00  INFO 24044 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-12T00:00:55.874-06:00  INFO 24044 --- [main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-12T00:00:57.098-06:00  WARN 24044 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-12T00:00:57.515-06:00  INFO 24044 --- [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-07-12T00:00:57.523-06:00  INFO 24044 --- [main] com.alberto.backend.BackendApplication   : Started BackendApplication in 7.976 seconds (process running for 8.688)
+2026-07-12T00:01:10.981-06:00  INFO 24044 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-12T00:01:10.981-06:00  INFO 24044 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-12T00:01:10.983-06:00  INFO 24044 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-07-12T00:39:58.531-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@401ce6dd (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T00:39:58.534-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=32m4s544ms451µs).
+2026-07-12T00:39:58.539-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@28253225 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T00:39:58.542-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@c82d925 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T00:39:58.543-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@48952b52 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T00:39:58.545-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@1e3ec705 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:45:16.884-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=9h5m36s284ms456µs500ns).
+2026-07-12T09:45:16.989-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@50d4ff4d (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:45:17.093-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@59147e6b (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:45:17.199-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@274f53c (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:45:17.302-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@75ad5ca8 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:45:17.409-06:00  WARN 24044 --- [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@103fd4d2 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-07-12T09:48:19.006-06:00  INFO 24044 --- [http-nio-8080-exec-4] com.alberto.backend.LoginController      : ACCION_LOGIN: Usuario existente sincronizado. Email: jarquinjs.bus@gmail.com, Rol Real: comprador
+2026-07-12T10:17:48.882-06:00  INFO 24044 --- [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-12T10:17:48.893-06:00  INFO 24044 --- [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-07-12T10:17:48.901-06:00  INFO 24044 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-12T10:17:48.906-06:00  INFO 24044 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-12T10:17:49.157-06:00  INFO 24044 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
