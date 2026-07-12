@@ -40,4 +40,20 @@ public class PiezaController {
 
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/{id}/reactivar")
+    public ResponseEntity<String> reactivarPieza(@PathVariable UUID id) {
+        Pieza pieza = piezaRepository.findById(id).orElseThrow();
+        pieza.setActivo(true);
+        piezaRepository.save(pieza);
+        return ResponseEntity.ok("Pieza reactivada");
+    }
+
+    @PutMapping("/{id}/suspender")
+    public ResponseEntity<String> suspenderPieza(@PathVariable UUID id) {
+        Pieza pieza = piezaRepository.findById(id).orElseThrow();
+        pieza.setActivo(false);
+        piezaRepository.save(pieza);
+        return ResponseEntity.ok("Pieza suspendida");
+    }
 }
