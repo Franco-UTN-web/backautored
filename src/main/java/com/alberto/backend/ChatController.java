@@ -31,7 +31,7 @@ public class ChatController {
             return null;
         }
         // Limita a 500 caracteres
-        if (mensaje.length() > 500) {
+        if (mensaje.length() > 90) {
             return null;
         }
         // Evita caracteres de control ocultos (ASCII 0-31 y 127)
@@ -83,25 +83,46 @@ public class ChatController {
 
         try {
             // --- LÓGICA DE BÚSQUEDA DE PIEZAS ---
+            // --- LÓGICA DE BÚSQUEDA DE PIEZAS MEJORADA ---
             String textoParaBuscar = mensajeLimpio.toLowerCase().replaceAll("[.,¿?¡!]", "");
             String[] palabras = textoParaBuscar.split(" ");
-            List<String> ignorar = Arrays.asList("hola", "oye", "quiero", "busco", "necesito", "puedes");
+
+            // 1. Ampliamos la lista de palabras "basura"
+            List<String> ignorar = Arrays.asList(
+                    "hola", "oye", "quiero", "busco", "necesito", "puedes", "estoy", "buscando",
+                    "refaccion", "refacción", "numero", "número", "parte", "para", "con", "del",
+                    "este", "esta", "auto", "coche", "pieza", "las", "los", "una", "uno", "que"
+            );
+
             String palabraClave = "";
+
+            // 2. Buscamos la palabra más importante
             for (String p : palabras) {
-                if (p.length() > 2 && !ignorar.contains(p)) {
-                    palabraClave = p; break;
+                if (p.length() > 3 && !ignorar.contains(p)) {
+                    palabraClave = p;
+
+                    // 🔥 LA MAGIA: Si la palabra tiene un número (ej. 06H-114-487-J),
+                    // asumimos que es el código de la pieza y detenemos la búsqueda de palabras.
+                    if (p.matches(".*\\d.*")) {
+                        break;
+                    }
                 }
             }
 
             String contextoDB = "No hay datos.";
             if (!palabraClave.isEmpty()) {
-                List<Pieza> piezas = piezaRepository.buscarPorNombre(palabraClave);
+                // 3. Usamos nuestro nuevo método del repositorio que busca por nombre Y por número
+                List<Pieza> piezas = piezaRepository.buscarPorNombreOPartNumber(palabraClave);
+
                 if (!piezas.isEmpty()) {
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < Math.min(5, piezas.size()); i++) {
                         Pieza p = piezas.get(i);
                         if (p.isActivo()) {
-                            sb.append("Pieza: ").append(p.getNombre_comercial()).append(" | Marca: ").append(p.getMarca()).append("; ");
+                            sb.append("Pieza: ").append(p.getNombre_comercial())
+                                    .append(" | Marca: ").append(p.getMarca_vehiculo()) // o getMarca() según tu entidad
+                                    .append(" | No. Parte: ").append(p.getNumeroParte())
+                                    .append(" | ID: ").append(p.getId()).append("; ");
                         }
                     }
                     if (sb.length() > 0) contextoDB = sb.toString();
@@ -124,12 +145,14 @@ public class ChatController {
 
             // --- PROMPT FINAL CERRADO ---
             String promptSistema = instruccionesRol +
+                    "\n\nINSTRUCCIÓN DE ESTILO: Usa formato Markdown en las respuestas. Utiliza negritas (**texto**) para resaltar los nombres de las piezas, y viñetas (-) si das varias opciones, para que tu texto sea fácil de leer." +
                     "\n\nContexto BD: " + contextoDB +
                     "\nPregunta del usuario: " + mensajeLimpio +
                     "\n\nREGLA DE FORMATO: Responde ÚNICAMENTE en JSON con esta estructura exacta:" +
                     "\n{" +
-                    "\n  \"mensaje\": \"Tu respuesta en texto\"," +
-                    "\n  \"accion\": \"Nombre de la accion o NINGUNA\"" +
+                    "\n  \"mensaje\": \"Tu respuesta redactada aquí usando el formato Markdown\"," +
+                    "\n  \"accion\": \"Nombre de la accion (ej. NAVIGATE_CATALOG, OPEN_PRODUCT) o NINGUNA\"," +
+                    "\n  \"producto_id\": \"El ID del producto si recomiendas uno específico, o vacío si no aplica\"" +
                     "\n}";
 
             // --- LLAMADA A GEMINI ---

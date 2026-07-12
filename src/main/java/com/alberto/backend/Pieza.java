@@ -25,6 +25,7 @@ public class Pieza {
     private String anio_vehiculo;
     private String imagen_url;
 
+
     @JsonProperty("numero_parte") // Esto le dice a Java: "En el JSON de React búscalo con guion bajo"
     @Column(name = "numero_parte") // Esto le dice a Java: "En Supabase guárdalo con guion bajo"
     private String numeroParte;

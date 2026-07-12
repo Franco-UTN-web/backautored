@@ -33,6 +33,11 @@ public class Establecimiento {
     @Column(name = "estado_rep")
     private String estadoRep;
 
+    // 🔥 NUEVOS CAMPOS DE MAPA 🔥
+    // Usamos Double porque equivale a float8 en la base de datos para máxima precisión
+    private Double latitud;
+    private Double longitud;
+
     // ==========================================
     //           GETTERS Y SETTERS
     // ==========================================
@@ -78,4 +83,11 @@ public class Establecimiento {
 
     public String getEstadoRep() { return estadoRep; }
     public void setEstadoRep(String estadoRep) { this.estadoRep = estadoRep; }
+
+    // 🔥 GETTERS Y SETTERS DEL MAPA 🔥
+    public Double getLatitud() { return latitud; }
+    public void setLatitud(Double latitud) { this.latitud = latitud; }
+
+    public Double getLongitud() { return longitud; }
+    public void setLongitud(Double longitud) { this.longitud = longitud; }
 }
