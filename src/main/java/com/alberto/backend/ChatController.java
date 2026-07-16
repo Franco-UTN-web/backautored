@@ -160,41 +160,62 @@ public class ChatController {
             body.put("contents", Collections.singletonList(contentNode));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> geminiRes = restTemplate.postForEntity(url, entity, Map.class);
 
-            Map resBody = geminiRes.getBody();
-            List candidates = (List) resBody.get("candidates");
-            Map first = (Map) candidates.get(0);
-            Map content = (Map) first.get("content");
-            List parts = (List) content.get("parts");
-            String textoBot = (String) ((Map) parts.get(0)).get("text");
-
-            textoBot = textoBot.replaceAll("```json", "").replaceAll("```", "").trim();
-
-            respuesta.put("rawJson", textoBot);
-
-            // ==========================================
-            // LÓGICA DE REGISTRO
-            // ==========================================
             try {
-                int tokensCalculados = (promptSistema.length() + textoBot.length()) / 4;
+                ResponseEntity<Map> geminiRes = restTemplate.postForEntity(url, entity, Map.class);
+                Map resBody = geminiRes.getBody();
 
-                ChatLog log = new ChatLog();
-                log.setRolUsuario(rolUsuario);
-                log.setPrompt(mensajeLimpio);
-                log.setTokensEstimados(tokensCalculados);
-                log.setFecha(LocalDateTime.now());
+                // 🔥 LECTURA DEFENSIVA: Comprobamos que Gemini realmente nos haya contestado algo
+                if (resBody == null || !resBody.containsKey("candidates")) {
+                    throw new Exception("Gemini no devolvió candidatos. Posible bloqueo por filtro de seguridad.");
+                }
 
-                chatLogRepository.save(log);
-            } catch (Exception logEx) {
-                logger.error("No se pudo guardar el log del chat: " + logEx.getMessage());
+                List candidates = (List) resBody.get("candidates");
+                if (candidates == null || candidates.isEmpty()) {
+                    throw new Exception("La lista de respuestas de Gemini está vacía.");
+                }
+
+                Map first = (Map) candidates.get(0);
+                if (!first.containsKey("content")) {
+                    // Si no hay "content", Gemini bloqueó el mensaje. Imprimimos el motivo.
+                    Object finishReason = first.get("finishReason");
+                    throw new Exception("Mensaje bloqueado por Gemini. Motivo: " + finishReason);
+                }
+
+                Map contentMap = (Map) first.get("content");
+                List parts = (List) contentMap.get("parts");
+                String textoBot = (String) ((Map) parts.get(0)).get("text");
+
+                textoBot = textoBot.replaceAll("```json", "").replaceAll("```", "").trim();
+                respuesta.put("rawJson", textoBot);
+
+                // --- LÓGICA DE REGISTRO ---
+                try {
+                    int tokensCalculados = (promptSistema.length() + textoBot.length()) / 4;
+                    ChatLog log = new ChatLog();
+                    log.setRolUsuario(rolUsuario);
+                    log.setPrompt(mensajeLimpio);
+                    log.setTokensEstimados(tokensCalculados);
+                    log.setFecha(LocalDateTime.now());
+                    chatLogRepository.save(log);
+                } catch (Exception logEx) {
+                    logger.error("No se pudo guardar el log del chat: " + logEx.getMessage());
+                }
+
+                logger.info("✅ Interacción de chatbot procesada correctamente para rol: " + rolUsuario);
+                return ResponseEntity.ok(respuesta);
+
+                // 🔥 ATRAPAMOS ERRORES DE LÍMITE DE API (RATE LIMITING)
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                logger.error("❌ Google rechazó la petición (Posible límite de cuota). Estatus: " + e.getStatusCode());
+                logger.error("❌ Detalles de Google: " + e.getResponseBodyAsString());
+
+                respuesta.put("rawJson", "{\"mensaje\":\"Estoy recibiendo muchos mensajes a la vez. Por favor, espera unos segundos e intenta de nuevo. 🚦\", \"accion\":\"NINGUNA\"}");
+                return ResponseEntity.status(429).body(respuesta); // Retornamos un error 429 (Too Many Requests)
             }
 
-            logger.info("✅ Interacción de chatbot procesada correctamente para rol: " + rolUsuario);
-            return ResponseEntity.ok(respuesta);
-
         } catch (Exception e) {
-            logger.error("❌ Error de servidor en Gemini: " + e.getMessage());
+            logger.error("❌ Error interno procesando el chat: " + e.getMessage());
             respuesta.put("rawJson", "{\"mensaje\":\"Mis servidores están en mantenimiento. Intenta en un momento. 🔧\", \"accion\":\"NINGUNA\"}");
             return ResponseEntity.status(500).body(respuesta);
         }
