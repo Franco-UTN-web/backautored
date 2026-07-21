@@ -53,6 +53,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Dependencia para leer archivos Excel (.xlsx) -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>

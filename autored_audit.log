@@ -31,3 +31,11 @@
 2026-07-21T10:42:51.167-06:00  WARN 27864 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
 2026-07-21T10:42:51.555-06:00  INFO 27864 --- [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
 2026-07-21T10:42:51.560-06:00  INFO 27864 --- [main] com.alberto.backend.BackendApplication   : Started BackendApplication in 9.483 seconds (process running for 11.151)
+2026-07-21T11:45:55.764-06:00  INFO 27864 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-21T11:45:55.770-06:00  INFO 27864 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-21T11:45:55.788-06:00  INFO 27864 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 17 ms
+2026-07-21T11:50:14.693-06:00  INFO 27864 --- [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-21T11:50:14.703-06:00  INFO 27864 --- [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-07-21T11:50:14.712-06:00  INFO 27864 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-21T11:50:14.726-06:00  INFO 27864 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-21T11:50:14.958-06:00  INFO 27864 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

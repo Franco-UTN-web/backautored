@@ -3,19 +3,16 @@ package com.alberto.backend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/inventario")
@@ -166,78 +163,82 @@ public class InventarioController {
         }
     }
 
-    // 📥 1. DESCARGAR PLANTILLA CSV
     // ==========================================
-    @GetMapping("/plantilla-csv")
-    public ResponseEntity<byte[]> descargarPlantilla() {
-        // Estas son las columnas exactas que tu sistema necesita
-        String cabeceras = "nombre_comercial,marca,modelo,categoria,numero_parte,condicion,stock,precio_lista,precio_oferta\n";
-        byte[] bytes = cabeceras.getBytes(StandardCharsets.UTF_8);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=plantilla_inventario.csv")
-                .contentType(MediaType.parseMediaType("text/csv"))
-                .body(bytes);
-    }
-
+    // 📤 CARGA MASIVA DE INVENTARIO POR EXCEL (.xlsx)
     // ==========================================
-    // 📤 2. SUBIR Y LEER EL CSV
-    // ==========================================
-    @PostMapping("/upload-csv")
-    public ResponseEntity<String> subirCSV(
+    @PostMapping("/upload-excel")
+    public ResponseEntity<String> subirExcel(
             @RequestParam("file") MultipartFile file,
             @RequestParam("establecimiento_id") UUID establecimientoId) {
 
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("El archivo está vacío.");
+            return ResponseEntity.badRequest().body("El archivo Excel está vacío.");
         }
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-            String linea;
-            boolean esPrimeraLinea = true;
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0); // Leemos la primera hoja
             int contadorGuardados = 0;
 
-            while ((linea = br.readLine()) != null) {
-                // Saltamos la fila 1 porque son los encabezados
-                if (esPrimeraLinea) {
-                    esPrimeraLinea = false;
-                    continue;
+            // Iteramos sobre las filas (i = 1 para saltar la fila 0 de los encabezados)
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue; // Si la fila está vacía, saltamos
+
+                // Validamos que al menos tenga el primer dato (Nombre comercial)
+                if (row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) continue;
+
+                try {
+                    // 1. Creamos la pieza general
+                    Pieza nuevaPieza = new Pieza();
+                    nuevaPieza.setNombre_comercial(obtenerValorCelda(row.getCell(0)));
+                    nuevaPieza.setMarca(obtenerValorCelda(row.getCell(1)));
+                    nuevaPieza.setModelo(obtenerValorCelda(row.getCell(2)));
+                    nuevaPieza.setCategoria(obtenerValorCelda(row.getCell(3)));
+                    nuevaPieza.setNumeroParte(obtenerValorCelda(row.getCell(4)));
+                    nuevaPieza.setCondicion(obtenerValorCelda(row.getCell(5)));
+                    nuevaPieza.setActivo(true);
+
+                    Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
+
+                    // 2. Creamos el inventario asociado a la sucursal
+                    Inventario nuevoInventario = new Inventario();
+                    nuevoInventario.setPieza(piezaGuardada);
+                    nuevoInventario.setEstablecimiento_id(establecimientoId);
+
+                    // Convertimos números para stock y precios
+                    nuevoInventario.setStock((int) Double.parseDouble(obtenerValorCelda(row.getCell(6))));
+                    nuevoInventario.setPrecio_lista(new BigDecimal(obtenerValorCelda(row.getCell(7))));
+                    nuevoInventario.setPrecio_oferta(new BigDecimal(obtenerValorCelda(row.getCell(8))));
+
+                    inventarioRepository.save(nuevoInventario);
+                    contadorGuardados++;
+
+                } catch (Exception filaEx) {
+                    // Si una fila tiene error (ej. texto en lugar de precio), la saltamos y seguimos
+                    System.out.println("Error procesando fila " + i + ": " + filaEx.getMessage());
                 }
-
-                // Separamos los datos por coma
-                String[] datos = linea.split(",");
-
-                // Si la línea está vacía o incompleta, la saltamos
-                if (datos.length < 9) continue;
-
-                // 1. Creamos la pieza
-                Pieza nuevaPieza = new Pieza();
-                nuevaPieza.setNombre_comercial(datos[0].trim());
-                nuevaPieza.setMarca(datos[1].trim());
-                nuevaPieza.setModelo(datos[2].trim());
-                nuevaPieza.setCategoria(datos[3].trim());
-                nuevaPieza.setNumeroParte(datos[4].trim());
-                nuevaPieza.setCondicion(datos[5].trim());
-                nuevaPieza.setActivo(true);
-
-                Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
-
-                // 2. Creamos el inventario asociado a la sucursal
-                Inventario nuevoInventario = new Inventario();
-                nuevoInventario.setPieza(piezaGuardada);
-                nuevoInventario.setEstablecimiento_id(establecimientoId);
-                nuevoInventario.setStock(Integer.parseInt(datos[6].trim()));
-                nuevoInventario.setPrecio_lista(new BigDecimal(datos[7].trim()));
-                nuevoInventario.setPrecio_oferta(new BigDecimal(datos[8].trim()));
-
-                inventarioRepository.save(nuevoInventario);
-                contadorGuardados++;
             }
 
             return ResponseEntity.ok("Éxito. Se agregaron " + contadorGuardados + " productos al inventario.");
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al leer el CSV. Revisa el formato: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error al leer el Excel. Revisa el formato: " + e.getMessage());
+        }
+    }
+
+    // --- Función de ayuda para leer celdas sin importar si son texto o número ---
+    private String obtenerValorCelda(Cell celda) {
+        if (celda == null) return "";
+
+        switch (celda.getCellType()) {
+            case STRING:
+                return celda.getStringCellValue().trim();
+            case NUMERIC:
+                return String.valueOf(celda.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(celda.getBooleanCellValue());
+            default:
+                return "";
         }
     }
 }
