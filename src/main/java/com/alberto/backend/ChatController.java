@@ -147,7 +147,7 @@ public class ChatController {
                     "\n  \"producto_id\": \"El ID del producto si recomiendas uno específico, o vacío si no aplica\"" +
                     "\n}";
 
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2-flash:generateContent?key=" + geminiApiKey;
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
