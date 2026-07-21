@@ -180,7 +180,7 @@ public class InventarioController {
             int contadorGuardados = 0;
 
             // Iteramos sobre las filas (i = 1 para saltar la fila 0 de los encabezados)
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue; // Si la fila está vacía, saltamos
 
