@@ -9,6 +9,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/inventario")
@@ -156,6 +163,81 @@ public class InventarioController {
             return ResponseEntity.ok(catalogoActivo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // 📥 1. DESCARGAR PLANTILLA CSV
+    // ==========================================
+    @GetMapping("/plantilla-csv")
+    public ResponseEntity<byte[]> descargarPlantilla() {
+        // Estas son las columnas exactas que tu sistema necesita
+        String cabeceras = "nombre_comercial,marca,modelo,categoria,numero_parte,condicion,stock,precio_lista,precio_oferta\n";
+        byte[] bytes = cabeceras.getBytes(StandardCharsets.UTF_8);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=plantilla_inventario.csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(bytes);
+    }
+
+    // ==========================================
+    // 📤 2. SUBIR Y LEER EL CSV
+    // ==========================================
+    @PostMapping("/upload-csv")
+    public ResponseEntity<String> subirCSV(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("establecimiento_id") UUID establecimientoId) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("El archivo está vacío.");
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+            String linea;
+            boolean esPrimeraLinea = true;
+            int contadorGuardados = 0;
+
+            while ((linea = br.readLine()) != null) {
+                // Saltamos la fila 1 porque son los encabezados
+                if (esPrimeraLinea) {
+                    esPrimeraLinea = false;
+                    continue;
+                }
+
+                // Separamos los datos por coma
+                String[] datos = linea.split(",");
+
+                // Si la línea está vacía o incompleta, la saltamos
+                if (datos.length < 9) continue;
+
+                // 1. Creamos la pieza
+                Pieza nuevaPieza = new Pieza();
+                nuevaPieza.setNombre_comercial(datos[0].trim());
+                nuevaPieza.setMarca(datos[1].trim());
+                nuevaPieza.setModelo(datos[2].trim());
+                nuevaPieza.setCategoria(datos[3].trim());
+                nuevaPieza.setNumeroParte(datos[4].trim());
+                nuevaPieza.setCondicion(datos[5].trim());
+                nuevaPieza.setActivo(true);
+
+                Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
+
+                // 2. Creamos el inventario asociado a la sucursal
+                Inventario nuevoInventario = new Inventario();
+                nuevoInventario.setPieza(piezaGuardada);
+                nuevoInventario.setEstablecimiento_id(establecimientoId);
+                nuevoInventario.setStock(Integer.parseInt(datos[6].trim()));
+                nuevoInventario.setPrecio_lista(new BigDecimal(datos[7].trim()));
+                nuevoInventario.setPrecio_oferta(new BigDecimal(datos[8].trim()));
+
+                inventarioRepository.save(nuevoInventario);
+                contadorGuardados++;
+            }
+
+            return ResponseEntity.ok("Éxito. Se agregaron " + contadorGuardados + " productos al inventario.");
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al leer el CSV. Revisa el formato: " + e.getMessage());
         }
     }
 }
