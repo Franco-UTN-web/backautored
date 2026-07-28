@@ -180,7 +180,7 @@ public class InventarioController {
             int contadorGuardados = 0;
 
             // Iteramos sobre las filas (i = 1 para saltar la fila 0 de los encabezados)
-            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 3; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue; // Si la fila está vacía, saltamos
 
@@ -190,14 +190,21 @@ public class InventarioController {
                 try {
                     // 1. Creamos la pieza general
                     Pieza nuevaPieza = new Pieza();
-                    nuevaPieza.setNombre_comercial(obtenerValorCelda(row.getCell(0)));
-                    nuevaPieza.setMarca(obtenerValorCelda(row.getCell(1)));
-                    nuevaPieza.setModelo(obtenerValorCelda(row.getCell(2)));
-                    nuevaPieza.setCategoria(obtenerValorCelda(row.getCell(3)));
-                    nuevaPieza.setNumeroParte(obtenerValorCelda(row.getCell(4)));
-                    nuevaPieza.setCondicion(obtenerValorCelda(row.getCell(5)));
-                    nuevaPieza.setActivo(true);
 
+                    // Asegúrate de que este orden coincida exactamente con las columnas de tu Excel V2
+                    nuevaPieza.setCategoria(obtenerValorCelda(row.getCell(0)));         // A: Tipo de Pieza
+                    nuevaPieza.setMarca(obtenerValorCelda(row.getCell(1)));             // B: Marca de la Pieza
+                    nuevaPieza.setNombre_comercial(obtenerValorCelda(row.getCell(2)));  // C: Nombre Comercial
+                    nuevaPieza.setNumeroParte(obtenerValorCelda(row.getCell(3)));       // D: Número de Parte
+                    nuevaPieza.setCondicion(obtenerValorCelda(row.getCell(4)));         // E: Condición
+                    nuevaPieza.setGarantia(obtenerValorCelda(row.getCell(5)));          // F: Garantía
+                    nuevaPieza.setTipo_vehiculo(obtenerValorCelda(row.getCell(6)));     // G: Tipo de Vehículo
+                    nuevaPieza.setMarca_vehiculo(obtenerValorCelda(row.getCell(7)));    // H: Marca Vehículo
+                    nuevaPieza.setModelo(obtenerValorCelda(row.getCell(8)));            // I: Modelo
+                    nuevaPieza.setAnio_vehiculo(obtenerValorCelda(row.getCell(9)));     // J: Año
+                    nuevaPieza.setNivel_calidad(obtenerValorCelda(row.getCell(10)));    // K: Calidad
+
+                    nuevaPieza.setActivo(true);
                     Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
 
                     // 2. Creamos el inventario asociado a la sucursal
@@ -206,15 +213,14 @@ public class InventarioController {
                     nuevoInventario.setEstablecimiento_id(establecimientoId);
 
                     // Convertimos números para stock y precios
-                    nuevoInventario.setStock((int) Double.parseDouble(obtenerValorCelda(row.getCell(6))));
-                    nuevoInventario.setPrecio_lista(new BigDecimal(obtenerValorCelda(row.getCell(7))));
-                    nuevoInventario.setPrecio_oferta(new BigDecimal(obtenerValorCelda(row.getCell(8))));
+                    nuevoInventario.setStock((int) Double.parseDouble(obtenerValorCelda(row.getCell(11)))); // L: Stock
+                    nuevoInventario.setPrecio_lista(new BigDecimal(obtenerValorCelda(row.getCell(12))));    // M: Precio Compra
+                    nuevoInventario.setPrecio_oferta(new BigDecimal(obtenerValorCelda(row.getCell(13))));   // N: Precio Venta
 
                     inventarioRepository.save(nuevoInventario);
                     contadorGuardados++;
 
                 } catch (Exception filaEx) {
-                    // Si una fila tiene error (ej. texto en lugar de precio), la saltamos y seguimos
                     System.out.println("Error procesando fila " + i + ": " + filaEx.getMessage());
                 }
             }
