@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173") // Asegúrate de permitir tu puerto de Vite
+@CrossOrigin(origins = "*") // Asegúrate de permitir tu puerto de Vite
 public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);

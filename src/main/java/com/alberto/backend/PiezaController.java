@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/piezas")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class PiezaController {
     private static final Logger logger = LoggerFactory.getLogger(PiezaController.class);
 

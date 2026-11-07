@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/establecimientos")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class EstablecimientoController {
 
     private static final Logger logger = LoggerFactory.getLogger(EstablecimientoController.class);

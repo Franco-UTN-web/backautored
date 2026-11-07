@@ -10,7 +10,7 @@ import java.util.UUID; // <-- Asegúrate de importar UUID
 
 @RestController
 @RequestMapping("/api/perfiles")
-@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
+@CrossOrigin(origins = "*")
 public class PerfilController {
 
     @Autowired

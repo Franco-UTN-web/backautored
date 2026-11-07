@@ -8,17 +8,22 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+// 🔥 Aquí está el import que faltaba para las fechas
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
+@CrossOrigin(origins = "*")
 public class ChatController {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
     @Autowired
     private PiezaRepository piezaRepository;
+
+    @Autowired
+    private ChatLogRepository chatLogRepository;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -30,11 +35,9 @@ public class ChatController {
         if (mensaje == null || mensaje.trim().isEmpty()) {
             return null;
         }
-        // Limita a 500 caracteres
         if (mensaje.length() > 90) {
             return null;
         }
-        // Evita caracteres de control ocultos (ASCII 0-31 y 127)
         return mensaje.replaceAll("[\\x00-\\x1F\\x7F]", "").trim();
     }
 
@@ -51,10 +54,10 @@ public class ChatController {
 
         for (String frase : frasesBloqueadas) {
             if (mensajeNormalizado.contains(frase)) {
-                return false; // Intento de hackeo detectado
+                return false;
             }
         }
-        return true; // Mensaje limpio
+        return true;
     }
 
     // ==========================================
@@ -66,7 +69,6 @@ public class ChatController {
         String mensajeOriginal = request.get("mensaje");
         String rolUsuario = request.getOrDefault("rol", "comprador");
 
-        // --- FILTROS DE SEGURIDAD ---
         String mensajeLimpio = validarMensajeChatbot(mensajeOriginal);
 
         if (mensajeLimpio == null) {
@@ -76,18 +78,15 @@ public class ChatController {
         }
 
         if (!pasaFirewall(mensajeLimpio)) {
-            logger.error("🚨 [ALERTA DE SEGURIDAD] Intento de Prompt Injection bloqueado. Mensaje: " + mensajeOriginal);
+            logger.error("🚨 [ALERTA DE SEGURIDAD] Intento de Prompt Injection bloqueado.");
             respuesta.put("rawJson", "{\"mensaje\":\"Lo siento, por políticas de seguridad de AutoRed no puedo procesar esa solicitud. 🛡️\", \"accion\":\"NINGUNA\"}");
-            return ResponseEntity.ok(respuesta); // Retornamos OK para que el frontend dibuje el mensaje de rechazo
+            return ResponseEntity.ok(respuesta);
         }
 
         try {
-            // --- LÓGICA DE BÚSQUEDA DE PIEZAS ---
-            // --- LÓGICA DE BÚSQUEDA DE PIEZAS MEJORADA ---
             String textoParaBuscar = mensajeLimpio.toLowerCase().replaceAll("[.,¿?¡!]", "");
             String[] palabras = textoParaBuscar.split(" ");
 
-            // 1. Ampliamos la lista de palabras "basura"
             List<String> ignorar = Arrays.asList(
                     "hola", "oye", "quiero", "busco", "necesito", "puedes", "estoy", "buscando",
                     "refaccion", "refacción", "numero", "número", "parte", "para", "con", "del",
@@ -96,13 +95,9 @@ public class ChatController {
 
             String palabraClave = "";
 
-            // 2. Buscamos la palabra más importante
             for (String p : palabras) {
                 if (p.length() > 3 && !ignorar.contains(p)) {
                     palabraClave = p;
-
-                    // 🔥 LA MAGIA: Si la palabra tiene un número (ej. 06H-114-487-J),
-                    // asumimos que es el código de la pieza y detenemos la búsqueda de palabras.
                     if (p.matches(".*\\d.*")) {
                         break;
                     }
@@ -111,7 +106,6 @@ public class ChatController {
 
             String contextoDB = "No hay datos.";
             if (!palabraClave.isEmpty()) {
-                // 3. Usamos nuestro nuevo método del repositorio que busca por nombre Y por número
                 List<Pieza> piezas = piezaRepository.buscarPorNombreOPartNumber(palabraClave);
 
                 if (!piezas.isEmpty()) {
@@ -120,7 +114,7 @@ public class ChatController {
                         Pieza p = piezas.get(i);
                         if (p.isActivo()) {
                             sb.append("Pieza: ").append(p.getNombre_comercial())
-                                    .append(" | Marca: ").append(p.getMarca_vehiculo()) // o getMarca() según tu entidad
+                                    .append(" | Marca: ").append(p.getMarca_vehiculo())
                                     .append(" | No. Parte: ").append(p.getNumeroParte())
                                     .append(" | ID: ").append(p.getId()).append("; ");
                         }
@@ -129,7 +123,6 @@ public class ChatController {
                 }
             }
 
-            // --- PERSONALIDAD POR ROL ---
             String instruccionesRol = "";
             switch(rolUsuario) {
                 case "admin":
@@ -143,7 +136,6 @@ public class ChatController {
                     break;
             }
 
-            // --- PROMPT FINAL CERRADO ---
             String promptSistema = instruccionesRol +
                     "\n\nINSTRUCCIÓN DE ESTILO: Usa formato Markdown en las respuestas. Utiliza negritas (**texto**) para resaltar los nombres de las piezas, y viñetas (-) si das varias opciones, para que tu texto sea fácil de leer." +
                     "\n\nContexto BD: " + contextoDB +
@@ -155,7 +147,6 @@ public class ChatController {
                     "\n  \"producto_id\": \"El ID del producto si recomiendas uno específico, o vacío si no aplica\"" +
                     "\n}";
 
-            // --- LLAMADA A GEMINI ---
             String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -169,25 +160,89 @@ public class ChatController {
             body.put("contents", Collections.singletonList(contentNode));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> geminiRes = restTemplate.postForEntity(url, entity, Map.class);
 
-            Map resBody = geminiRes.getBody();
-            List candidates = (List) resBody.get("candidates");
-            Map first = (Map) candidates.get(0);
-            Map content = (Map) first.get("content");
-            List parts = (List) content.get("parts");
-            String textoBot = (String) ((Map) parts.get(0)).get("text");
+            try {
+                ResponseEntity<Map> geminiRes = restTemplate.postForEntity(url, entity, Map.class);
+                Map resBody = geminiRes.getBody();
 
-            textoBot = textoBot.replaceAll("```json", "").replaceAll("```", "").trim();
+                // 🔥 LECTURA DEFENSIVA: Comprobamos que Gemini realmente nos haya contestado algo
+                if (resBody == null || !resBody.containsKey("candidates")) {
+                    throw new Exception("Gemini no devolvió candidatos. Posible bloqueo por filtro de seguridad.");
+                }
 
-            respuesta.put("rawJson", textoBot);
-            logger.info("✅ Interacción de chatbot procesada correctamente para rol: " + rolUsuario);
-            return ResponseEntity.ok(respuesta);
+                List candidates = (List) resBody.get("candidates");
+                if (candidates == null || candidates.isEmpty()) {
+                    throw new Exception("La lista de respuestas de Gemini está vacía.");
+                }
+
+                Map first = (Map) candidates.get(0);
+                if (!first.containsKey("content")) {
+                    // Si no hay "content", Gemini bloqueó el mensaje. Imprimimos el motivo.
+                    Object finishReason = first.get("finishReason");
+                    throw new Exception("Mensaje bloqueado por Gemini. Motivo: " + finishReason);
+                }
+
+                Map contentMap = (Map) first.get("content");
+                List parts = (List) contentMap.get("parts");
+                String textoBot = (String) ((Map) parts.get(0)).get("text");
+
+                textoBot = textoBot.replaceAll("```json", "").replaceAll("```", "").trim();
+                respuesta.put("rawJson", textoBot);
+
+                // --- LÓGICA DE REGISTRO ---
+                try {
+                    int tokensCalculados = (promptSistema.length() + textoBot.length()) / 4;
+                    ChatLog log = new ChatLog();
+                    log.setRolUsuario(rolUsuario);
+                    log.setPrompt(mensajeLimpio);
+                    log.setTokensEstimados(tokensCalculados);
+                    log.setFecha(LocalDateTime.now());
+                    chatLogRepository.save(log);
+                } catch (Exception logEx) {
+                    logger.error("No se pudo guardar el log del chat: " + logEx.getMessage());
+                }
+
+                logger.info("✅ Interacción de chatbot procesada correctamente para rol: " + rolUsuario);
+                return ResponseEntity.ok(respuesta);
+
+                // 🔥 ATRAPAMOS ERRORES DE LÍMITE DE API (RATE LIMITING)
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                logger.error("❌ Google rechazó la petición (Posible límite de cuota). Estatus: " + e.getStatusCode());
+                logger.error("❌ Detalles de Google: " + e.getResponseBodyAsString());
+
+                respuesta.put("rawJson", "{\"mensaje\":\"Estoy recibiendo muchos mensajes a la vez. Por favor, espera unos segundos e intenta de nuevo. 🚦\", \"accion\":\"NINGUNA\"}");
+                return ResponseEntity.status(429).body(respuesta); // Retornamos un error 429 (Too Many Requests)
+            }
 
         } catch (Exception e) {
-            logger.error("❌ Error de servidor en Gemini: " + e.getMessage());
+            logger.error("❌ Error interno procesando el chat: " + e.getMessage());
             respuesta.put("rawJson", "{\"mensaje\":\"Mis servidores están en mantenimiento. Intenta en un momento. 🔧\", \"accion\":\"NINGUNA\"}");
             return ResponseEntity.status(500).body(respuesta);
+        }
+    }
+
+    // ==========================================
+    // 📊 4. ESTADÍSTICAS DEL PANEL
+    // ==========================================
+    @GetMapping("/estadisticas")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticas() {
+        Map<String, Object> stats = new HashMap<>();
+
+        try {
+            long totalPeticiones = chatLogRepository.count();
+            Integer totalTokens = chatLogRepository.sumarTokensTotales();
+            if (totalTokens == null) totalTokens = 0;
+
+            List<ChatLog> historialReciente = chatLogRepository.findTop10ByOrderByFechaDesc();
+
+            stats.put("peticionesTotales", totalPeticiones);
+            stats.put("tokensConsumidos", totalTokens);
+            stats.put("historial", historialReciente);
+
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            logger.error("Error al obtener estadísticas: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

@@ -3,6 +3,10 @@ package com.alberto.backend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -12,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/inventario")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class InventarioController {
 
     @Autowired
@@ -156,6 +160,91 @@ public class InventarioController {
             return ResponseEntity.ok(catalogoActivo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // ==========================================
+    // 📤 CARGA MASIVA DE INVENTARIO POR EXCEL (.xlsx)
+    // ==========================================
+    @PostMapping("/upload-excel")
+    public ResponseEntity<String> subirExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("establecimiento_id") UUID establecimientoId) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("El archivo Excel está vacío.");
+        }
+
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0); // Leemos la primera hoja
+            int contadorGuardados = 0;
+
+            // Iteramos sobre las filas (i = 1 para saltar la fila 0 de los encabezados)
+            for (int i = 3; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue; // Si la fila está vacía, saltamos
+
+                // Validamos que al menos tenga el primer dato (Nombre comercial)
+                if (row.getCell(0) == null || row.getCell(0).getCellType() == CellType.BLANK) continue;
+
+                try {
+                    // 1. Creamos la pieza general
+                    Pieza nuevaPieza = new Pieza();
+
+                    // Asegúrate de que este orden coincida exactamente con las columnas de tu Excel V2
+                    nuevaPieza.setCategoria(obtenerValorCelda(row.getCell(0)));         // A: Tipo de Pieza
+                    nuevaPieza.setMarca(obtenerValorCelda(row.getCell(1)));             // B: Marca de la Pieza
+                    nuevaPieza.setNombre_comercial(obtenerValorCelda(row.getCell(2)));  // C: Nombre Comercial
+                    nuevaPieza.setNumeroParte(obtenerValorCelda(row.getCell(3)));       // D: Número de Parte
+                    nuevaPieza.setCondicion(obtenerValorCelda(row.getCell(4)));         // E: Condición
+                    nuevaPieza.setGarantia(obtenerValorCelda(row.getCell(5)));          // F: Garantía
+                    nuevaPieza.setTipo_vehiculo(obtenerValorCelda(row.getCell(6)));     // G: Tipo de Vehículo
+                    nuevaPieza.setMarca_vehiculo(obtenerValorCelda(row.getCell(7)));    // H: Marca Vehículo
+                    nuevaPieza.setModelo(obtenerValorCelda(row.getCell(8)));            // I: Modelo
+                    nuevaPieza.setAnio_vehiculo(obtenerValorCelda(row.getCell(9)));     // J: Año
+                    nuevaPieza.setNivel_calidad(obtenerValorCelda(row.getCell(10)));    // K: Calidad
+
+                    nuevaPieza.setActivo(true);
+                    Pieza piezaGuardada = piezaRepository.save(nuevaPieza);
+
+                    // 2. Creamos el inventario asociado a la sucursal
+                    Inventario nuevoInventario = new Inventario();
+                    nuevoInventario.setPieza(piezaGuardada);
+                    nuevoInventario.setEstablecimiento_id(establecimientoId);
+
+                    // Convertimos números para stock y precios
+                    nuevoInventario.setStock((int) Double.parseDouble(obtenerValorCelda(row.getCell(11)))); // L: Stock
+                    nuevoInventario.setPrecio_lista(new BigDecimal(obtenerValorCelda(row.getCell(12))));    // M: Precio Compra
+                    nuevoInventario.setPrecio_oferta(new BigDecimal(obtenerValorCelda(row.getCell(13))));   // N: Precio Venta
+
+                    inventarioRepository.save(nuevoInventario);
+                    contadorGuardados++;
+
+                } catch (Exception filaEx) {
+                    System.out.println("Error procesando fila " + i + ": " + filaEx.getMessage());
+                }
+            }
+
+            return ResponseEntity.ok("Éxito. Se agregaron " + contadorGuardados + " productos al inventario.");
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al leer el Excel. Revisa el formato: " + e.getMessage());
+        }
+    }
+
+    // --- Función de ayuda para leer celdas sin importar si son texto o número ---
+    private String obtenerValorCelda(Cell celda) {
+        if (celda == null) return "";
+
+        switch (celda.getCellType()) {
+            case STRING:
+                return celda.getStringCellValue().trim();
+            case NUMERIC:
+                return String.valueOf(celda.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(celda.getBooleanCellValue());
+            default:
+                return "";
         }
     }
 }
