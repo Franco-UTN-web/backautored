@@ -8,7 +8,6 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-// 🔥 Aquí está el import que faltaba para las fechas
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -25,8 +24,18 @@ public class ChatController {
     @Autowired
     private ChatLogRepository chatLogRepository;
 
-    @Value("${gemini.api.key}")
-    private String geminiApiKey;
+    // La llave NUNCA va en el código: se lee de application.properties,
+    // que a su vez la toma de la variable de entorno GROK_API_KEY.
+    @Value("${grok.api.key}")
+    private String grokApiKey;
+
+    // URL y modelo configurables (por defecto Groq, porque tu llave empieza con gsk_).
+    // Para usar xAI cambia estos valores en application.properties.
+    @Value("${grok.api.url:https://api.groq.com/openai/v1/chat/completions}")
+    private String grokUrl;
+
+    @Value("${grok.api.model:llama-3.3-70b-versatile}")
+    private String grokModel;
 
     // ==========================================
     // 🛡️ 1. VALIDACIÓN CONTRA GASTO DE TOKENS
@@ -124,7 +133,7 @@ public class ChatController {
             }
 
             String instruccionesRol = "";
-            switch(rolUsuario) {
+            switch (rolUsuario) {
                 case "admin":
                     instruccionesRol = "Eres el Auditor IA de AutoRed. Ayudas al administrador a revisar tiendas y usuarios. Si te piden ir a usuarios, tu accion será NAVIGATE_USERS. Si piden tiendas, será NAVIGATE_STORES.";
                     break;
@@ -147,44 +156,44 @@ public class ChatController {
                     "\n  \"producto_id\": \"El ID del producto si recomiendas uno específico, o vacío si no aplica\"" +
                     "\n}";
 
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
+            // ===== Llamada a la API de IA =====
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(grokApiKey); // la llave va en el header, no en la URL
+
+            Map<String, Object> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", promptSistema);
 
             Map<String, Object> body = new HashMap<>();
-            Map<String, Object> contentNode = new HashMap<>();
-            Map<String, Object> partNode = new HashMap<>();
-            partNode.put("text", promptSistema);
-            contentNode.put("parts", Collections.singletonList(partNode));
-            body.put("contents", Collections.singletonList(contentNode));
+            body.put("model", grokModel);
+            body.put("messages", Collections.singletonList(message));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
             try {
-                ResponseEntity<Map> geminiRes = restTemplate.postForEntity(url, entity, Map.class);
-                Map resBody = geminiRes.getBody();
+                ResponseEntity<Map> grokRes = restTemplate.postForEntity(grokUrl, entity, Map.class);
+                Map resBody = grokRes.getBody();
 
-                // 🔥 LECTURA DEFENSIVA: Comprobamos que Gemini realmente nos haya contestado algo
-                if (resBody == null || !resBody.containsKey("candidates")) {
-                    throw new Exception("Gemini no devolvió candidatos. Posible bloqueo por filtro de seguridad.");
+                // 🔥 LECTURA DEFENSIVA: comprobamos que la API realmente haya contestado algo
+                if (resBody == null || !resBody.containsKey("choices")) {
+                    throw new Exception("La API no devolvió respuestas (choices).");
                 }
 
-                List candidates = (List) resBody.get("candidates");
-                if (candidates == null || candidates.isEmpty()) {
-                    throw new Exception("La lista de respuestas de Gemini está vacía.");
+                List choices = (List) resBody.get("choices");
+                if (choices == null || choices.isEmpty()) {
+                    throw new Exception("La lista de respuestas de la API está vacía.");
                 }
 
-                Map first = (Map) candidates.get(0);
-                if (!first.containsKey("content")) {
-                    // Si no hay "content", Gemini bloqueó el mensaje. Imprimimos el motivo.
-                    Object finishReason = first.get("finishReason");
-                    throw new Exception("Mensaje bloqueado por Gemini. Motivo: " + finishReason);
+                Map first = (Map) choices.get(0);
+                Map msg = (Map) first.get("message");
+                if (msg == null || msg.get("content") == null) {
+                    Object finishReason = first.get("finish_reason");
+                    throw new Exception("La API no devolvió contenido. Motivo: " + finishReason);
                 }
 
-                Map contentMap = (Map) first.get("content");
-                List parts = (List) contentMap.get("parts");
-                String textoBot = (String) ((Map) parts.get(0)).get("text");
+                String textoBot = (String) msg.get("content");
 
                 textoBot = textoBot.replaceAll("```json", "").replaceAll("```", "").trim();
                 respuesta.put("rawJson", textoBot);
@@ -205,13 +214,19 @@ public class ChatController {
                 logger.info("✅ Interacción de chatbot procesada correctamente para rol: " + rolUsuario);
                 return ResponseEntity.ok(respuesta);
 
-                // 🔥 ATRAPAMOS ERRORES DE LÍMITE DE API (RATE LIMITING)
+                // 🔥 ATRAPAMOS ERRORES DE LA API (límite de cuota, llave inválida, etc.)
             } catch (org.springframework.web.client.HttpClientErrorException e) {
-                logger.error("❌ Google rechazó la petición (Posible límite de cuota). Estatus: " + e.getStatusCode());
-                logger.error("❌ Detalles de Google: " + e.getResponseBodyAsString());
+                logger.error("❌ La API rechazó la petición. Estatus: " + e.getStatusCode());
+                logger.error("❌ Detalles: " + e.getResponseBodyAsString());
 
-                respuesta.put("rawJson", "{\"mensaje\":\"Estoy recibiendo muchos mensajes a la vez. Por favor, espera unos segundos e intenta de nuevo. 🚦\", \"accion\":\"NINGUNA\"}");
-                return ResponseEntity.status(429).body(respuesta); // Retornamos un error 429 (Too Many Requests)
+                if (e.getStatusCode().value() == 429) {
+                    respuesta.put("rawJson", "{\"mensaje\":\"Estoy recibiendo muchos mensajes a la vez. Por favor, espera unos segundos e intenta de nuevo. 🚦\", \"accion\":\"NINGUNA\"}");
+                    return ResponseEntity.status(429).body(respuesta);
+                }
+
+                // 401/403 = llave inválida, 400 = modelo o formato incorrecto, etc.
+                respuesta.put("rawJson", "{\"mensaje\":\"Mis servidores están en mantenimiento. Intenta en un momento. 🔧\", \"accion\":\"NINGUNA\"}");
+                return ResponseEntity.status(500).body(respuesta);
             }
 
         } catch (Exception e) {
